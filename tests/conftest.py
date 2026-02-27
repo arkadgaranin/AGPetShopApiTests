@@ -1,9 +1,11 @@
 import pytest
 import requests
+import allure
 
 BASE_URL = "http://5.181.109.28:9090/api/v3"
 
 @pytest.fixture(scope="function")
+@allure.title("Создание питомца")
 def create_pet():
     """Фикстура для создания питомца"""
     payload = {
@@ -16,6 +18,7 @@ def create_pet():
     return response.json()
 
 @pytest.fixture(scope="function")
+@allure.title("Обновление питомца")
 def update_pet():
     """Фикстура для обновления питомца"""
     payload = {
