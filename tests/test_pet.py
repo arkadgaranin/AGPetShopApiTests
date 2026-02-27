@@ -115,3 +115,51 @@ class TestPet:
                                                                                     "с ожидаемым")
 
             assert response_json["status"] == payload["status"], "статус питомца не совпадает с ожидаемым"
+
+    @allure.title("Получение информации о питомце по ID")
+    def test_get_pet_by_id(self, create_pet):
+        with allure.step("Получение ID созданного питомца"):
+            pet_id = create_pet["id"]
+
+        with allure.step("Отправка запроса на получение информации о питомце по ID"):
+            response = requests.get(url=f"{BASE_URL}/pet/{pet_id}")
+
+        with allure.step("Проверка статуса ответа и данных питомца"):
+            assert response.status_code == 200
+            assert response.json()["id"] == pet_id
+
+    @allure.title("Обновление информации о питомце")
+    def test_update_pet(self, create_pet, update_pet):
+        with allure.step("Получение ID созданного питомца и остальных его данных"):
+            pet_id = create_pet["id"]
+            pet_name = create_pet["name"]
+            pet_status = create_pet["status"]
+
+        with allure.step("Получение ID обновленного питомца"):
+            update_pet_id = update_pet["id"]
+
+        with allure.step("Отправка запроса на получение информации обновленного питомца по ID"):
+            response = requests.get(url=f"{BASE_URL}/pet/{update_pet_id}")
+
+        with allure.step("Проверка статуса ответа и обновленных данных питомца"):
+            assert response.status_code == 200
+            assert response.json()["id"] != pet_id
+            assert response.json()["name"] != pet_name
+            assert response.json()["status"] != pet_status
+
+    @allure.title("Удаление питомца по ID")
+    def test_delete_pet_by_id(self, create_pet):
+        with allure.step("Получение ID созданного питомца"):
+            pet_id = create_pet["id"]
+
+        with allure.step("Отправка запроса на удаление питомца по ID"):
+            response = requests.delete(url=f"{BASE_URL}/pet/{pet_id}")
+
+        with allure.step("Проверка статуса ответа после удаления питомца"):
+            assert response.status_code == 200
+
+        with allure.step("Отправка запроса на получение удаленного питомца по ID"):
+            response = requests.get(url=f"{BASE_URL}/pet/{pet_id}")
+
+        with allure.step("Проверка статуса ответа после получения удаленного питомца"):
+            assert response.status_code == 404
