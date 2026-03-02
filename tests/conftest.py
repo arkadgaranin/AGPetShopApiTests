@@ -16,16 +16,3 @@ def create_pet():
     response = requests.post(url=f"{BASE_URL}/pet/", json=payload)
     assert response.status_code == 200
     return response.json()
-
-@pytest.fixture(scope="function")
-@allure.title("Обновление питомца")
-def update_pet():
-    """Фикстура для обновления питомца"""
-    payload = {
-        "id": 2,
-        "name": "Buddy Updated",
-        "status": "sold"
-    }
-    response = requests.put(url=f"{BASE_URL}/pet/", json=payload)
-    assert response.status_code == 200
-    return response.json()
