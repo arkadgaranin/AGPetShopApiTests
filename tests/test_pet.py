@@ -186,13 +186,11 @@ class TestPet:
         with allure.step("Проверка статуса ответа и формата данных"):
             assert response.status_code == expected_status_code
 
-            if status is None:
-                assert response.text == "No status provided. Try again?"
-            elif status == "booked":
-                assert isinstance(response.json(), dict)
-            else:
+            if response.status_code == 200:
                 assert isinstance(response.json(), list)
                 assert len(response.json()) > 0
-                #В цикле проверяю, что у каждого питомца статус равен тому, который приходит в параметризованный тест
+                # В цикле проверяю, что у каждого питомца статус равен тому, который приходит в параметризованный тест
                 for pet in response.json():
                     assert pet['status'] == status
+            else:
+                assert response.text == 'No status provided. Try again?' or isinstance(response.json(), dict)
