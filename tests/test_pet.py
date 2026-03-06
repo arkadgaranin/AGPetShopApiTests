@@ -188,6 +188,8 @@ class TestPet:
 
             if status is None:
                 assert response.text == "No status provided. Try again?"
+            elif status == "booked":
+                assert isinstance(response.json(), dict)
             else:
                 assert isinstance(response.json(), list)
                 assert len(response.json()) > 0
