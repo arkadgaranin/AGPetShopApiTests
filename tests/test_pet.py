@@ -1,4 +1,5 @@
 import allure
+import pytest
 import requests
 import jsonschema
 from .schemas.pet_schema import PET_SCHEMA
@@ -166,3 +167,30 @@ class TestPet:
 
         with allure.step("Проверка статуса ответа после получения удаленного питомца"):
             assert response.status_code == 404
+
+    @allure.title("Получение списка питомцев по статусу")
+    @pytest.mark.parametrize(
+        "status, expected_status_code",
+        [
+            ("available", 200),
+            ("pending", 200),
+            ("sold", 200),
+            (None, 400), #Пустой статус
+            ("booked", 400) #Несуществующий статус
+        ]
+    )
+    def test_get_pet_by_status(self, status, expected_status_code):
+        with allure.step(f"Отправка запроса на получение питомцев по статусу {status}"):
+            response = requests.get(url=f"{BASE_URL}/pet/findByStatus", params={"status": status})
+
+        with allure.step("Проверка статуса ответа и формата данных"):
+            assert response.status_code == expected_status_code
+
+            if response.status_code == 200:
+                assert isinstance(response.json(), list)
+                assert len(response.json()) > 0
+                # В цикле проверяю, что у каждого питомца статус равен тому, который приходит в параметризованный тест
+                for pet in response.json():
+                    assert pet['status'] == status
+            else:
+                assert response.text == 'No status provided. Try again?' or isinstance(response.json(), dict)
