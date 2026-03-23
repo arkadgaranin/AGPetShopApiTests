@@ -1,6 +1,8 @@
 import allure
 import jsonschema
 import requests
+
+from tests.schemas.inventory_schema import INVENTORY_SCHEMA
 from tests.schemas.order_schema import ORDER_SCHEMA
 
 BASE_URL = "http://5.181.109.28:9090/api/v3"
@@ -45,24 +47,26 @@ class TestStore:
         with allure.step("Проверка статуса ответа и данных заказа с id = 1"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
             assert response.json()["id"] == order_id
-            assert response.json()['petId'] == 1 #А так правильно сравнивать со значением? Или правильней сравнивать
-            # с переменной, по аналогии с assert response.json()["id"] == order_id ?
-            assert response.json()['quantity'] == 1
-            assert response.json()['status'] == "placed"
-            assert response.json()['complete'] == True
+            assert response.json()['petId'] == create_order['petId']
+            assert response.json()['quantity'] == create_order['quantity']
+            assert response.json()['status'] == create_order['status']
+            assert response.json()['complete'] == create_order['complete']
 
     @allure.title("Удаление заказа по ID")
     def test_delete_order_by_id(self, create_order):
-        with allure.step("Отправка запроса на удаление заказа с id = 1"):
-            response = requests.delete(url=f"{BASE_URL}/store/order/1")
+        with allure.step("Получение ID созданного заказа"):
+            order_id = create_order["id"]
 
-        with allure.step("Проверка статуса ответа после удаления заказа с id = 1"):
+        with allure.step(f"Отправка запроса на удаление заказа с id = {order_id}"):
+            response = requests.delete(url=f"{BASE_URL}/store/order/{order_id}")
+
+        with allure.step(f"Проверка статуса ответа после удаления заказа с id = {order_id}"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
 
-        with allure.step("Отправка запроса на получение удаленного заказа с id = 1"):
-            response = requests.get(url=f"{BASE_URL}/store/order/1")
+        with allure.step(f"Отправка запроса на получение удаленного заказа с id = {order_id}"):
+            response = requests.get(url=f"{BASE_URL}/store/order/{order_id}")
 
-        with allure.step("Проверка статуса ответа и текста ошибки после получения удаленного заказа с id = 1"):
+        with allure.step(f"Проверка статуса ответа и текста ошибки после получения удаленного заказа с id = {order_id}"):
             assert response.status_code == 404, "Код ответа не совпал с ожидаемым"
             assert response.text == 'Order not found', "Текст ошибки не совпал с ожидаемым"
 
@@ -80,12 +84,7 @@ class TestStore:
         with allure.step("Отправка запроса на получение инвентаря магазина"):
             response = requests.get(url=f"{BASE_URL}/store/inventory")
 
-        with allure.step("Проверка статуса ответа и формата данных инвентаря"):
+        with allure.step("Проверка статуса ответа и валидация JSON-схемы инвентаря"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым" #Ассерт падает, т.к /store/inventory
             # отдает 500, поломалось в сваггере :(
-            assert isinstance(response.json(), dict), "Вернулся не словарь"
-            assert response.json()['approved'] == 57 #Здесь тоже не понимаю так верно сравнивать с конкретным
-            # значением, которое по сути лежит в payload функции create_order() в фикстуре? Или правильней в тесте вызвать
-            # create_order["approved"] и положить значение 57 в переменную, а здесь сравнивать с переменной уже?
-
-            assert response.json()['delivered'] == 50
+            jsonschema.validate(response.json(), INVENTORY_SCHEMA)
