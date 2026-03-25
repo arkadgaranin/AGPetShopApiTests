@@ -136,7 +136,7 @@ class TestPet:
 
         with allure.step("Подготовка данных для обновления питомца"):
             payload = {
-                "id": 2,
+                "id": pet_id,
                 "name": "Buddy Updated",
                 "status": "sold"
             }
@@ -147,7 +147,6 @@ class TestPet:
         with allure.step("Проверка статуса ответа и обновленных данных питомца"):
             assert response.status_code == 200
             assert response.json()["id"] == payload["id"]
-            assert response.json()["id"] != pet_id
             assert response.json()["name"] == payload["name"]
             assert response.json()["status"] == payload["status"]
 
